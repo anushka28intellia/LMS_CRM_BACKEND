@@ -1,0 +1,28 @@
+HELP.md
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+### IDEs ###
+.idea/
+*.iws
+*.iml
+*.ipr
+.vscode/
+.classpath
+.project
+.settings/
+.apt_generated/
+
+### Logs ###
+logs/
+*.log
+
+### OS specific ###
+.DS_Store
+Thumbs.db
+
+### Local environment files ###
+src/main/resources/application-local.properties
+src/main/resources/liquibase-local.properties
