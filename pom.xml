@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.4.3</version>
+        <version>4.1.2</version>
         <relativePath/>
     </parent>
     <groupId>com.its</groupId>
@@ -19,8 +19,8 @@
         <lombok.version>1.18.48</lombok.version>
         <org.mapstruct.version>1.5.5.Final</org.mapstruct.version>
         <lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
-        <hypersistence-utils.version>3.13.2</hypersistence-utils.version>
-        <springdoc.version>2.3.0</springdoc.version>
+        <hypersistence-utils.version>3.16.0</hypersistence-utils.version>
+        <springdoc.version>3.0.0</springdoc.version>
         <jjwt.version>0.11.5</jjwt.version>
         <liquibase.version>4.30.0</liquibase.version>
         <maven.build.timestamp.format>yyyy-MM-dd_HH-mm-ss</maven.build.timestamp.format>
@@ -29,10 +29,10 @@
     </properties>
 
     <dependencies>
-        <!-- Spring Boot Web Starter -->
+        <!-- Spring Boot Web MVC Starter (renamed from spring-boot-starter-web in Boot 4) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
+            <artifactId>spring-boot-starter-webmvc</artifactId>
         </dependency>
 
         <!-- Spring Boot Data JPA Starter -->
@@ -53,10 +53,10 @@
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
 
-        <!-- Spring Boot AOP Starter -->
+        <!-- Spring Boot AOP Starter (renamed to spring-boot-starter-aspectj in Boot 4) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-aop</artifactId>
+            <artifactId>spring-boot-starter-aspectj</artifactId>
         </dependency>
 
         <!-- PostgreSQL Driver -->
@@ -66,10 +66,10 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- Hypersistence Utils for Hibernate 6 (Native PostgreSQL JSONB and Array Support) -->
+        <!-- Hypersistence Utils for Hibernate 7 (Native PostgreSQL JSONB and Array Support) -->
         <dependency>
             <groupId>io.hypersistence</groupId>
-            <artifactId>hypersistence-utils-hibernate-63</artifactId>
+            <artifactId>hypersistence-utils-hibernate-73</artifactId>
             <version>${hypersistence-utils.version}</version>
         </dependency>
 

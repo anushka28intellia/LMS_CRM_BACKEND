@@ -37,6 +37,9 @@ public class SecurityConfig {
     @Value("${app.cors.origins:http://localhost:3000,http://localhost:5173,http://localhost:5174}")
     private String corsOriginsStr;
 
+    @Value("${crm.auth.dev-users:false}")
+    private boolean devUsers;
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -44,8 +47,8 @@ public class SecurityConfig {
 
     @Bean
     public AuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-        authProvider.setUserDetailsService(userDetailsService);
+        // Spring Security 7 (Boot 4) takes the UserDetailsService in the constructor; the setter was removed.
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(userDetailsService);
         authProvider.setPasswordEncoder(passwordEncoder());
         return authProvider;
     }
@@ -87,6 +90,26 @@ public class SecurityConfig {
                     List<String> whitelist = whitelistProperties.getWhitelistPaths();
                     if (!whitelist.isEmpty()) {
                         auth.requestMatchers(whitelist.toArray(new String[0])).permitAll();
+                    }
+                    // PrivateInvest status probe (public, as in the PrivateInvest backend).
+                    auth.requestMatchers("/system/**").permitAll();
+                    // Boot's error page: lets a status already decided (e.g. 400 for a malformed id) reach the
+                    // client instead of being replaced by 403 on the error dispatch.
+                    auth.requestMatchers("/error").permitAll();
+                    // Development only: with crm.auth.dev-users=true (off by default) the PrivateInvest endpoints
+                    // accept a seeded dev user from the X-Dev-User header instead of a JWT (see
+                    // com.its.crm.records.security.CurrentUser). With the flag off they require a JWT like
+                    // everything else.
+                    if (devUsers) {
+                        auth.requestMatchers(
+                                "/persons/**",
+                                "/entities/**",
+                                "/entity-links/**",
+                                "/metadata/**",
+                                "/me",
+                                "/list-views/**",
+                                "/audit/**"
+                        ).permitAll();
                     }
                     auth.anyRequest().authenticated();
                 })
