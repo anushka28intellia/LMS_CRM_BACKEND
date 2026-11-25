@@ -377,8 +377,9 @@ public class RecordService {
 
     private java.util.Optional<Row> row(ObjectType type, UUID id, boolean lock) {
         return jdbc.sql("""
-                        SELECT id, hot_since, possible_duplicate_reason, hidden_fields, created_at, updated_at, archived_at, version
-                        FROM %s WHERE id = :id%s""".formatted(type.table(), lock ? " FOR UPDATE" : ""))
+                        SELECT id, CASE WHEN %s THEN hot_since END AS hot_since, possible_duplicate_reason, hidden_fields,
+                            created_at, updated_at, archived_at, version
+                        FROM %s WHERE id = :id%s""".formatted(HotFlag.isHot("hot_since"), type.table(), lock ? " FOR UPDATE" : ""))
                 .param("id", id)
                 .query((rs, i) -> new Row(rs.getObject("id", UUID.class), rs.getObject("hot_since", OffsetDateTime.class),
                         rs.getString("possible_duplicate_reason"), strings(rs.getArray("hidden_fields")),

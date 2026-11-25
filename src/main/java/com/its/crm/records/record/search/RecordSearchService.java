@@ -17,6 +17,7 @@ import com.its.crm.records.customfield.CustomFieldDtos.CustomFieldDef;
 import com.its.crm.records.customfield.CustomFieldDtos.DataType;
 import com.its.crm.records.customfield.CustomFieldService;
 import com.its.crm.records.record.FieldLogic;
+import com.its.crm.records.record.HotFlag;
 import com.its.crm.records.record.ObjectRules;
 import com.its.crm.records.record.ObjectRules.Rules;
 import com.its.crm.records.record.RecordFieldWriter;
@@ -87,6 +88,10 @@ public class RecordSearchService {
         addIfPresent(where, qb.filter(FilterLogic.parse(r.conditions(), r.logic())));
         String whereSql = String.join(" AND ", where);
         String orderBy = qb.orderBy(r.sort(), rules.defaultSort());
+        if (r.sort() == null || r.sort().isEmpty()) {
+            // Brief §3.8.2: a Hot record moves to the top of lists. A sort the user picks is kept as chosen.
+            orderBy = "CASE WHEN " + HotFlag.isHot("p.hot_since") + " THEN 0 ELSE 1 END, " + orderBy;
+        }
         List<CustomFieldDef> columns = columns(registry, r.columns(), qb, canSensitive);
 
         long total = jdbc.sql("SELECT count(*) FROM " + type.table() + " p WHERE " + whereSql)
@@ -95,7 +100,8 @@ public class RecordSearchService {
         pageParams.put("limit", size);
         pageParams.put("offset", (long) page * size);
         java.time.LocalDate today = writer.today();
-        List<SearchItem> items = jdbc.sql("SELECT p.id, p.version, p.archived_at, p.custom_fields::text AS custom_fields "
+        List<SearchItem> items = jdbc.sql("SELECT p.id, p.version, p.archived_at, p.custom_fields::text AS custom_fields, "
+                        + HotFlag.isHot("p.hot_since") + " AS hot "
                         + "FROM " + type.table() + " p WHERE " + whereSql + " ORDER BY " + orderBy + " LIMIT :limit OFFSET :offset")
                 .params(pageParams)
                 .query((rs, i) -> {
@@ -109,7 +115,7 @@ public class RecordSearchService {
                         }
                     }
                     return new SearchItem(rs.getObject("id", UUID.class), rs.getLong("version"), title(rules, stored),
-                            rs.getObject("archived_at", OffsetDateTime.class) != null, values);
+                            rs.getObject("archived_at", OffsetDateTime.class) != null, values, rs.getBoolean("hot"));
                 })
                 .list();
         int totalPages = (int) ((total + size - 1) / size);
@@ -228,7 +234,7 @@ public class RecordSearchService {
         }
         return switch (flag.trim().toUpperCase()) {
             case "POSSIBLE_DUPLICATE" -> "p.possible_duplicate_reason IS NOT NULL";
-            case "HOT" -> "p.hot_since IS NOT NULL";
+            case "HOT" -> HotFlag.isHot("p.hot_since");
             default -> throw RecordQueryBuilder.invalid("flag", "Flag is POSSIBLE_DUPLICATE or HOT.");
         };
     }

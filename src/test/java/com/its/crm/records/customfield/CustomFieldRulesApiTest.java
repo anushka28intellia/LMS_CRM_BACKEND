@@ -92,9 +92,10 @@ class CustomFieldRulesApiTest extends ApiTestBase {
 
         try {
             // Updating another field still succeeds without forcing the untouched legacy gap.
-            putCurrent("/api/entities/" + entity + "/custom-fields", "{\"values\":{\"capitalStatus\":\"ACTIVE\"}}")
+            // (Prospect: Active is set by the CRM only, brief §3.7.)
+            putCurrent("/api/entities/" + entity + "/custom-fields", "{\"values\":{\"capitalStatus\":\"PROSPECT\"}}")
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.values.capitalStatus").value("ACTIVE"));
+                    .andExpect(jsonPath("$.values.capitalStatus").value("PROSPECT"));
 
             // Explicitly clearing or sending blank for that mandatory field still fails.
             putCurrent("/api/entities/" + entity + "/custom-fields", "{\"values\":{\"%s\":\"\"}}".formatted(lateApi))

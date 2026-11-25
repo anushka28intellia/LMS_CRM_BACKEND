@@ -27,6 +27,10 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class RecordFieldWriter {
 
+    /** The Credit status / Capital status list (brief §3.7) and its value only the CRM may set. */
+    static final String RELATIONSHIP_STATUS = "RELATIONSHIP_STATUS";
+    static final String SYSTEM_ONLY_STATUS = "ACTIVE";
+
     private final CustomFieldService customFields;
     private final CurrentUser currentUser;
     private final ObjectRules rules;
@@ -114,6 +118,16 @@ public class RecordFieldWriter {
         Map<String, String> errors = new LinkedHashMap<>(prepared.errors());
         Map<String, Object> before = prepared.change().before();
         Map<String, Object> after = prepared.change().after();
+
+        // Brief §3.7: a user sets a relationship status to Prospect or Inactive; Active is set by the CRM only, when
+        // the party is on an open opportunity or a live loan. A record already Active keeps its value.
+        for (CustomFieldDef d : fields(api)) {
+            if (RELATIONSHIP_STATUS.equals(d.picklist()) && SYSTEM_ONLY_STATUS.equals(after.get(d.apiName()))
+                    && !errors.containsKey(d.apiName())) {
+                errors.put(d.apiName(), "'" + d.label() + "' becomes Active on its own when this party is on an open "
+                        + "opportunity, so it can't be set by hand. Choose Prospect or Inactive.");
+            }
+        }
 
         Map<String, Object> resulting = new LinkedHashMap<>(current);
         after.forEach((k, v) -> {

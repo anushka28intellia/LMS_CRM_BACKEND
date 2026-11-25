@@ -45,7 +45,8 @@ public final class SearchDtos {
             Integer size) {
     }
 
-    public record SearchItem(UUID id, long version, String title, boolean archived, Map<String, Object> values) {
+    /** {@code hot}: the record carries a Hot flag that has not expired (brief §3.8.2). */
+    public record SearchItem(UUID id, long version, String title, boolean archived, Map<String, Object> values, boolean hot) {
     }
 
     public record SearchPage(List<SearchItem> items, List<String> columns, int page, int size, long totalElements, int totalPages) {
